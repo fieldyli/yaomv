@@ -1,0 +1,23 @@
+# Pre-alpha: requires the untested Yaomv.getStatus RPC backend.
+version: "1.0"
+type: dashboard-widget
+data:
+  id: "b93af39e-a1f0-4765-a82c-0ca589d7de72"
+  type: grid
+  reloadPeriod: 30000
+  permissions:
+    role:
+      - admin
+  title: _("Yandex Disk")
+  description: _("Displays Yandex Disk service and synchronization status.")
+  grid:
+    item:
+      content: "{{ name }}: {{ value }}"
+      tooltip: "{{ name }}: {{ value }}"
+      class: "omv-text-center"
+      contentClass: "omv-text-truncate"
+    store:
+      proxy:
+        service: Yaomv
+        get:
+          method: getStatus
