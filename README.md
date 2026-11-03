@@ -36,7 +36,7 @@ python3 -m unittest discover -s tests -v
 
 ## Latest experimental package
 
-Build from source with `sh packaging/build-deb.sh`. The current alpha5 retains the compact two-value Dashboard widget and adds readable synchronization states plus error details on the Services page. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha4 build before upgrading.
+Build from source with `sh packaging/build-deb.sh`. Alpha6 changes the compact Dashboard widget to a one-row table with OMV's native horizontal cloud-quota progress bar, while keeping readable sync status and error details on the Services page. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha5 build before upgrading.
 
 ## Development plan
 
@@ -60,6 +60,6 @@ GPL-3.0-only. See [LICENSE](LICENSE).
 
 **yaomv** — разрабатываемый плагин для веб-интерфейса OpenMediaVault 8, предназначенный для мониторинга уже установленного консольного клиента Яндекс Диска.
 
-Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha5 компактный виджет показывает понятные состояния синхронизации; на странице службы дополнительно отображаются причина ошибки и путь проблемного файла, если клиент их сообщает.
+Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha6 виджет показывает состояние синхронизации, облачную квоту и горизонтальную полосу заполнения. Нативный индикатор OMV становится красным при заполнении от 90%; текстовое предупреждение появляется с 70%. Подробные ошибки доступны на странице службы.
 
 Никаких личных путей, конфигурации, токенов или данных синхронизации в репозиторий не добавляем.
