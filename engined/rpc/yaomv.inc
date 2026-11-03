@@ -20,6 +20,7 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getProgress");
         $this->registerMethod("getDashboardStatus");
         $this->registerMethod("getDashboardUsage");
+        $this->registerMethod("getOverview");
     }
 
     /**
@@ -224,6 +225,103 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         $unit = strtoupper($m[2]);
         $base = strpos($unit, "I") !== false ? 1024 : 1000;
         return (float) str_replace(",", ".", $m[1]) * pow($base, $units[$unit]);
+    }
+
+    /**
+     * Read-only Markdown overview for the native OMV textPage component.
+     * Dashboard RPC and widget remain unchanged.
+     */
+    public function getOverview($params, $context)
+    {
+        $this->validateMethodContext($context, [
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ]);
+        $service = trim($this->readCommand(
+            ["/usr/bin/systemctl", "is-active", "yandex-disk.service"], 4
+        ));
+        $status = $this->readCommand(
+            ["/usr/bin/yandex-disk", "status"], 12
+        );
+        $state = $this->findValue(
+            $status, '/^Synchronization core status:\s*(.+)$/m'
+        );
+        $labels = [
+            "busy" => "Синхронизация",
+            "index" => "Индексирование",
+            "idle" => "Синхронизировано",
+            "paused" => "Приостановлено",
+            "error" => "Ошибка синхронизации",
+            "no internet access" => "Нет подключения"
+        ];
+        $serviceLabel = $service === "active"
+            ? "Работает" : ($service === "" ? "Неизвестно" : $service);
+        $syncLabel = $labels[$state] ?? $state;
+        $progress = $this->findValue(
+            $status, '/^Sync progress:\s*(.+)$/m'
+        );
+        $total = $this->findValue($status, '/^\s*Total:\s*(.+)$/m');
+        $used = $this->findValue($status, '/^\s*Used:\s*(.+)$/m');
+        $available = $this->findValue($status, '/^\s*Available:\s*(.+)$/m');
+        $totalBytes = $this->quotaToBytes($total);
+        $usedBytes = $this->quotaToBytes($used);
+        $usage = "Нет данных";
+        if ($totalBytes !== null && $totalBytes > 0 && $usedBytes !== null) {
+            $usage = number_format(
+                min(100, max(0, 100 * $usedBytes / $totalBytes)), 1, ".", ""
+            ) . "%";
+        }
+
+        $lines = [
+            "## Состояние",
+            "",
+            "| Показатель | Значение |",
+            "| --- | --- |",
+            "| Служба Yandex Disk | " . $this->escapeMarkdown($serviceLabel) . " |",
+            "| Синхронизация | " . $this->escapeMarkdown($syncLabel) . " |"
+        ];
+        if ($progress !== "N/A") {
+            $lines[] = "| Текущая операция | " . $this->escapeMarkdown($progress) . " |";
+        }
+        $lines = array_merge($lines, [
+            "",
+            "## Облачное хранилище",
+            "",
+            "| Показатель | Значение |",
+            "| --- | --- |",
+            "| Использовано | " . $this->escapeMarkdown($used) . " |",
+            "| Свободно | " . $this->escapeMarkdown($available) . " |",
+            "| Всего | " . $this->escapeMarkdown($total) . " |",
+            "| Заполнено | " . $this->escapeMarkdown($usage) . " |"
+        ]);
+
+        $error = $this->findValue($status, '/^Error:\s*(.+)$/m');
+        if ($error !== "N/A") {
+            $path = $this->findValue(
+                $status, '/^Path:\s*\x27([^\x27]*)\x27\s*$/m'
+            );
+            $lines[] = "";
+            $lines[] = "## Диагностика";
+            $lines[] = "";
+            $lines[] = "**Ошибка:** " . $this->escapeMarkdown($error);
+            if ($path !== "N/A") {
+                $lines[] = "";
+                $lines[] = "**Проблемный объект:** " . $this->escapeMarkdown($path);
+            }
+        }
+        $lines[] = "";
+        $lines[] = "*Процент текущей операции не означает общий прогресс синхронизации.*";
+        return implode("\n", $lines);
+    }
+
+    /** Escape untrusted client output before embedding it in Markdown. */
+    private function escapeMarkdown($value)
+    {
+        $value = str_replace(["\r", "\n"], " ", (string) $value);
+        return strtr($value, [
+            "\\" => "\\\\", "*" => "\\*", "_" => "\\_",
+            "[" => "\\[", "]" => "\\]", "|" => "\\|",
+            "<" => "&lt;", ">" => "&gt;"
+        ]);
     }
 
     private function findValue($output, $pattern)
