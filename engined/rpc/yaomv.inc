@@ -19,6 +19,7 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getStatus");
         $this->registerMethod("getProgress");
         $this->registerMethod("getDashboardStatus");
+        $this->registerMethod("getDashboardUsage");
     }
 
     /**
@@ -153,6 +154,76 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             ["name" => "Cloud", "value" => $quota]
         ];
         return ["total" => count($rows), "data" => $rows];
+    }
+
+    /**
+     * One-row dashboard data for OMV's native datatable progressBar.
+     * Percentage reflects cloud quota usage, NOT sync task progress.
+     */
+    public function getDashboardUsage($params, $context)
+    {
+        $this->validateMethodContext($context, [
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ]);
+
+        $service = trim($this->readCommand(
+            ["/usr/bin/systemctl", "is-active", "yandex-disk.service"], 4
+        ));
+        $output = $this->readCommand(
+            ["/usr/bin/yandex-disk", "status"], 12
+        );
+        $state = $this->findValue(
+            $output, '/^Synchronization core status:\s*(.+)$/m'
+        );
+        $labels = [
+            "busy" => "Синхронизация",
+            "index" => "Индексирование",
+            "idle" => "Синхронизировано",
+            "paused" => "Приостановлено",
+            "error" => "Ошибка синхронизации",
+            "no internet access" => "Нет подключения"
+        ];
+        $sync = $service === "active"
+            ? ($labels[$state] ?? ($state === "N/A" ? "Статус недоступен" : $state))
+            : "Служба: " . ($service ?: "unknown");
+
+        $used = $this->findValue($output, '/^\s*Used:\s*(.+)$/m');
+        $total = $this->findValue($output, '/^\s*Total:\s*(.+)$/m');
+        $usedBytes = $this->quotaToBytes($used);
+        $totalBytes = $this->quotaToBytes($total);
+        $percentage = null;
+        if ($usedBytes !== null && $totalBytes !== null && $totalBytes > 0) {
+            $percentage = round(min(100, max(0, 100 * $usedBytes / $totalBytes)), 1);
+        }
+
+        $quota = ($used === "N/A" || $total === "N/A")
+            ? "Нет данных" : $used . " / " . $total;
+        $usageText = $percentage === null ? "N/A" : $percentage . "%";
+        if ($percentage !== null && $percentage >= 90) {
+            $usageText = "Критично: " . $usageText;
+        } elseif ($percentage !== null && $percentage >= 70) {
+            $usageText = "Внимание: " . $usageText;
+        }
+        $data = [[
+            "sync" => $sync,
+            "cloud" => $quota,
+            "usagePercent" => $percentage ?? 0,
+            "usageText" => $usageText
+        ]];
+        return ["total" => 1, "data" => $data];
+    }
+
+    /** Convert human-readable decimal or binary Yandex Disk quotas to bytes. */
+    private function quotaToBytes($value)
+    {
+        if (!preg_match('/^(\d+(?:[.,]\d+)?)\s*(B|KB|MB|GB|TB|PB|KiB|MiB|GiB|TiB|PiB)$/i', $value, $m)) {
+            return null;
+        }
+        $units = ["B" => 0, "KB" => 1, "MB" => 2, "GB" => 3, "TB" => 4, "PB" => 5,
+                  "KIB" => 1, "MIB" => 2, "GIB" => 3, "TIB" => 4, "PIB" => 5];
+        $unit = strtoupper($m[2]);
+        $base = strpos($unit, "I") !== false ? 1024 : 1000;
+        return (float) str_replace(",", ".", $m[1]) * pow($base, $units[$unit]);
     }
 
     private function findValue($output, $pattern)
