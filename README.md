@@ -36,7 +36,7 @@ python3 -m unittest discover -s tests -v
 
 ## Latest experimental package
 
-Build from source with `sh packaging/build-deb.sh`. Alpha7 refines the native cloud-quota Dashboard progress bar: hides table headers, combines synchronization state and quota into one two-line column, and gives more width to the progress bar. The Services page and read-only RPC contract are unchanged. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha6 build before upgrading.
+Build from source with `sh packaging/build-deb.sh`. Alpha8 keeps the verified alpha7 Dashboard unchanged and updates Services → Yandex Disk to a native, read-only Markdown overview with separate sync, cloud quota and optional error diagnostic sections. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha7 build before upgrading.
 
 ## Development plan
 
@@ -60,6 +60,6 @@ GPL-3.0-only. See [LICENSE](LICENSE).
 
 **yaomv** — разрабатываемый плагин для веб-интерфейса OpenMediaVault 8, предназначенный для мониторинга уже установленного консольного клиента Яндекс Диска.
 
-Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha7 виджет объединяет статус и квоту в две строки без заголовков таблицы, а горизонтальная полоса занимает большую часть ширины. Нативный индикатор OMV становится красным при заполнении от 90%; текстовое предупреждение появляется с 70%. Подробные ошибки доступны на странице службы.
+Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha8 Dashboard сохраняет проверенный вид alpha7. Страница Services → Yandex Disk показывает структурированный обзор службы, синхронизации и квоты, а при ошибках — подробную диагностику. Нативный индикатор OMV становится красным при заполнении от 90%; текстовое предупреждение появляется с 70%. Подробные ошибки доступны на странице службы.
 
 Никаких личных путей, конфигурации, токенов или данных синхронизации в репозиторий не добавляем.
