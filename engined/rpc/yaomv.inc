@@ -122,18 +122,18 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         );
 
         $labels = [
-            "busy" => "Синхронизация",
-            "index" => "Индексирование",
-            "idle" => "Синхронизировано",
-            "paused" => "Приостановлено",
-            "error" => "Ошибка синхронизации",
-            "no internet access" => "Нет подключения"
+            "busy" => "Syncing",
+            "index" => "Indexing",
+            "idle" => "Up to date",
+            "paused" => "Paused",
+            "error" => "Sync error",
+            "no internet access" => "No connection"
         ];
 
         if ($service !== "active") {
-            $summary = "Служба: " . ($service ?: "unknown");
+            $summary = "Service: " . ($service ?: "unknown");
         } else {
-            $summary = $labels[$state] ?? ($state === "N/A" ? "Статус недоступен" : $state);
+            $summary = $labels[$state] ?? ($state === "N/A" ? "Status unavailable" : $state);
             // The client's percentage tracks its current operation, not total sync.
             // Suppress 0%, which caused confusion during operation transitions.
             if (in_array($state, ["busy", "index"], true) &&
@@ -177,16 +177,16 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             $output, '/^Synchronization core status:\s*(.+)$/m'
         );
         $labels = [
-            "busy" => "Синхронизация",
-            "index" => "Индексирование",
-            "idle" => "Синхронизировано",
-            "paused" => "Приостановлено",
-            "error" => "Ошибка синхронизации",
-            "no internet access" => "Нет подключения"
+            "busy" => "Syncing",
+            "index" => "Indexing",
+            "idle" => "Up to date",
+            "paused" => "Paused",
+            "error" => "Sync error",
+            "no internet access" => "No connection"
         ];
         $sync = $service === "active"
-            ? ($labels[$state] ?? ($state === "N/A" ? "Статус недоступен" : $state))
-            : "Служба: " . ($service ?: "unknown");
+            ? ($labels[$state] ?? ($state === "N/A" ? "Status unavailable" : $state))
+            : "Service: " . ($service ?: "unknown");
 
         $used = $this->findValue($output, '/^\s*Used:\s*(.+)$/m');
         $total = $this->findValue($output, '/^\s*Total:\s*(.+)$/m');
@@ -198,12 +198,12 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         }
 
         $quota = ($used === "N/A" || $total === "N/A")
-            ? "Нет данных" : $used . " / " . $total;
+            ? "Unavailable" : $used . " / " . $total;
         $usageText = $percentage === null ? "N/A" : $percentage . "%";
         if ($percentage !== null && $percentage >= 90) {
-            $usageText = "Критично: " . $usageText;
+            $usageText = "Critical: " . $usageText;
         } elseif ($percentage !== null && $percentage >= 70) {
-            $usageText = "Внимание: " . $usageText;
+            $usageText = "Warning: " . $usageText;
         }
         $data = [[
             "sync" => $sync,
@@ -228,14 +228,16 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
     }
 
     /**
-     * Read-only Markdown overview for the native OMV textPage component.
-     * Dashboard RPC and widget remain unchanged.
+     * Read-only English Markdown overview for OMV textPage.
+     * No Markdown tables: they are too tightly spaced in OMV Workbench.
+     * All Yandex Disk output is escaped before formatting.
      */
     public function getOverview($params, $context)
     {
         $this->validateMethodContext($context, [
             "role" => OMV_ROLE_ADMINISTRATOR
         ]);
+
         $service = trim($this->readCommand(
             ["/usr/bin/systemctl", "is-active", "yandex-disk.service"], 4
         ));
@@ -246,52 +248,56 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             $status, '/^Synchronization core status:\s*(.+)$/m'
         );
         $labels = [
-            "busy" => "Синхронизация",
-            "index" => "Индексирование",
-            "idle" => "Синхронизировано",
-            "paused" => "Приостановлено",
-            "error" => "Ошибка синхронизации",
-            "no internet access" => "Нет подключения"
+            "busy" => "Syncing",
+            "index" => "Indexing",
+            "idle" => "Up to date",
+            "paused" => "Paused",
+            "error" => "Sync error",
+            "no internet access" => "No connection"
         ];
         $serviceLabel = $service === "active"
-            ? "Работает" : ($service === "" ? "Неизвестно" : $service);
-        $syncLabel = $labels[$state] ?? $state;
+            ? "Active" : ($service === "" ? "Unknown" : $service);
+        $syncLabel = $labels[$state] ?? ($state === "N/A" ? "Status unavailable" : $state);
         $progress = $this->findValue(
             $status, '/^Sync progress:\s*(.+)$/m'
         );
         $total = $this->findValue($status, '/^\s*Total:\s*(.+)$/m');
         $used = $this->findValue($status, '/^\s*Used:\s*(.+)$/m');
         $available = $this->findValue($status, '/^\s*Available:\s*(.+)$/m');
+
         $totalBytes = $this->quotaToBytes($total);
         $usedBytes = $this->quotaToBytes($used);
-        $usage = "Нет данных";
+        $usage = "Unavailable";
         if ($totalBytes !== null && $totalBytes > 0 && $usedBytes !== null) {
             $usage = number_format(
                 min(100, max(0, 100 * $usedBytes / $totalBytes)), 1, ".", ""
             ) . "%";
         }
+        $serviceIndicator = $service === "active" ? "🟢" : "🔴";
+        $syncIndicator = $state === "idle" ? "🟢"
+            : (in_array($state, ["busy", "index", "paused"], true) ? "🟡"
+            : (in_array($state, ["error", "no internet access"], true) ? "🔴" : "⚪"));
 
         $lines = [
-            "## Состояние",
+            "## Service status",
             "",
-            "| Показатель | Значение |",
-            "| --- | --- |",
-            "| Служба Yandex Disk | " . $this->escapeMarkdown($serviceLabel) . " |",
-            "| Синхронизация | " . $this->escapeMarkdown($syncLabel) . " |"
+            "- **Yandex Disk service:** " . $serviceIndicator . " " . $this->escapeMarkdown($serviceLabel),
+            "- **Synchronization:** " . $syncIndicator . " " . $this->escapeMarkdown($syncLabel)
         ];
-        if ($progress !== "N/A") {
-            $lines[] = "| Текущая операция | " . $this->escapeMarkdown($progress) . " |";
+        if ($progress !== "N/A" && in_array($state, ["busy", "index"], true)) {
+            $lines[] = "- **Current operation:** " . $this->escapeMarkdown($progress);
         }
+
         $lines = array_merge($lines, [
             "",
-            "## Облачное хранилище",
+            "---",
             "",
-            "| Показатель | Значение |",
-            "| --- | --- |",
-            "| Использовано | " . $this->escapeMarkdown($used) . " |",
-            "| Свободно | " . $this->escapeMarkdown($available) . " |",
-            "| Всего | " . $this->escapeMarkdown($total) . " |",
-            "| Заполнено | " . $this->escapeMarkdown($usage) . " |"
+            "## Cloud storage",
+            "",
+            "- **Used:** " . $this->escapeMarkdown($used),
+            "- **Available:** " . $this->escapeMarkdown($available),
+            "- **Total:** " . $this->escapeMarkdown($total),
+            "- **Capacity used:** " . $this->escapeMarkdown($usage)
         ]);
 
         $error = $this->findValue($status, '/^Error:\s*(.+)$/m');
@@ -299,17 +305,20 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             $path = $this->findValue(
                 $status, '/^Path:\s*\x27([^\x27]*)\x27\s*$/m'
             );
-            $lines[] = "";
-            $lines[] = "## Диагностика";
-            $lines[] = "";
-            $lines[] = "**Ошибка:** " . $this->escapeMarkdown($error);
+            $lines = array_merge($lines, [
+                "",
+                "---",
+                "",
+                "## Diagnostics",
+                "",
+                "- **Error:** " . $this->escapeMarkdown($error)
+            ]);
             if ($path !== "N/A") {
-                $lines[] = "";
-                $lines[] = "**Проблемный объект:** " . $this->escapeMarkdown($path);
+                $lines[] = "- **Affected item:** " . $this->escapeMarkdown($path);
             }
         }
         $lines[] = "";
-        $lines[] = "*Процент текущей операции не означает общий прогресс синхронизации.*";
+        $lines[] = "*Current-operation progress is not the overall synchronization percentage.*";
         return implode("\n", $lines);
     }
 
