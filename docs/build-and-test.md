@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha4_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha4_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha5_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha5_all.deb
 ```
 
 ## Contents
@@ -42,3 +42,11 @@ Do **not** install this initial build on a production NAS.
 ## alpha4 dashboard correction
 
 The alpha3 large synchronization gauge was removed because it displayed 0% even when the RPC reported nonzero progress. The remaining Dashboard grid now calls `Yaomv.getDashboardStatus` and shows only two concise values: sync state with progress percentage, and used/total cloud capacity. The working Services page remains unchanged. This is still a test build: verify the compact widget in a private browser window after upgrading. Previously enabled gauge preferences might need to be disabled in Dashboard settings.
+
+## alpha5: sync state and error reporting
+
+- Dashboard: localized short states for `busy`, `index`, `idle`, `paused`, `error`, and `no internet access`.
+- Dashboard: suppress misleading `0%` shown while starting a new operation; positive percentages are *per-operation*, not overall sync completion.
+- Services page: conditionally append `Error` and `Error path` from the client's `yandex-disk status` output, if the error is reported.
+- No changes to Yandex Disk configuration, service lifecycle, authentication, or synchronized files.
+- Upgrade triggers restart of the OMV RPC engine and Workbench rebuild. Verify with `Yaomv.getStatus` and `Yaomv.getDashboardStatus` before checking the browser in a private window.
