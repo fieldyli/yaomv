@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.deb
+build/
+dist/
+*.egg-info/
+.env
+*.log
+passwd
+config.cfg
+.sync/
+*.token
+*.secret
