@@ -66,3 +66,7 @@ The dashboard widget is intentionally deferred until the RPC endpoint and its pe
 ## alpha8 read-only Services overview
 
 `Yaomv.getOverview` returns a Markdown-formatted string for a native OMV `textPage`; the dashboard and prior RPC methods remain unchanged. The output contains separate sections for service/synchronization state and cloud quota, a current-operation line only if reported by the client, and an error diagnostic section only when an error is reported. Error paths may contain private filenames but are visible only to an authenticated OMV administrator. The returned text is not stored or committed.
+
+## alpha9 English UI text
+
+The existing `Yaomv.getOverview`, `Yaomv.getDashboardStatus` and `Yaomv.getDashboardUsage` methods keep their return formats, but human-readable UI statuses and warning strings are in English. The overview uses Markdown headings, bullets, and dividers (not tables), and may show warning/status symbols. No client files or settings are modified.
