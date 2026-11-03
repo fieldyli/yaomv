@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha7_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha7_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha8_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha8_all.deb
 ```
 
 ## Contents
@@ -67,3 +67,12 @@ The alpha3 large synchronization gauge was removed because it displayed 0% even 
 - Displays status and quota in one two-line `template` cell (`{{ sync }}<br>{{ cloud }}`) with 3 flex units; gives the native `progressBar` 5 flex units.
 - Dashboard still uses `Yaomv.getDashboardUsage` and its warning threshold of 90%. Text warnings still start at 70%.
 - A full-width stacked layout is not supported by the generic Dashboard datatable; this is the native, low-risk compromise. Validate the visual result in a private browser window and roll back to alpha6 if needed.
+
+## alpha8 Services overview
+
+- Keeps the alpha7 Dashboard YAML and existing RPC endpoints intact.
+- Reuses the existing Services component ID and route; changes its type from `datatablePage` to native `textPage` with `contentFormat: markdown`.
+- Adds admin-only read-only RPC method `Yaomv.getOverview` returning a Markdown string with separate state and cloud quota tables, optional current-operation status, and optional diagnostic error/path.
+- Automatically refreshes the Services page every 30 seconds and enables the native copy-to-clipboard button for diagnostics.
+- Values from the Yandex Disk process are Markdown-escaped, and rendered using OMV's built-in sanitized Markdown view; no custom HTML, JavaScript, external assets or write operations.
+- Test `omv-rpc -u admin Yaomv getOverview '{}'` before opening Services → Yandex Disk in a private browser window. Roll back using alpha7 if the Workbench page does not load.
