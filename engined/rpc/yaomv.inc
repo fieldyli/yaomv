@@ -18,6 +18,7 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
     {
         $this->registerMethod("getStatus");
         $this->registerMethod("getProgress");
+        $this->registerMethod("getDashboardStatus");
     }
 
     /**
@@ -84,6 +85,47 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         }
 
         return ["progressPercent" => $percent];
+    }
+
+    /**
+     * Compact dashboard data: two short cells instead of the oversized gauge.
+     */
+    public function getDashboardStatus($params, $context)
+    {
+        $this->validateMethodContext($context, [
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ]);
+
+        $service = trim($this->readCommand(
+            ["/usr/bin/systemctl", "is-active", "yandex-disk.service"], 4
+        ));
+        $status = $this->readCommand(
+            ["/usr/bin/yandex-disk", "status"], 12
+        );
+        $state = $this->findValue(
+            $status, '/^Synchronization core status:\s*(.+)$/m'
+        );
+        $progress = $this->findValue(
+            $status, '/^Sync progress:\s*(.+)$/m'
+        );
+        $percent = "";
+        if (preg_match('/\(\s*(\d{1,3})\s*%\s*\)/', $progress, $m)) {
+            $percent = " · " . min(100, (int) $m[1]) . "%";
+        }
+        $used = $this->findValue(
+            $status, '/^\s*Used:\s*(.+)$/m'
+        );
+        $total = $this->findValue(
+            $status, '/^\s*Total:\s*(.+)$/m'
+        );
+
+        $rows = [
+            ["name" => "Sync", "value" => ($service === "active"
+                ? $state . $percent : ($service ?: "unknown"))],
+            ["name" => "Cloud", "value" => $used . " / " . $total]
+        ];
+
+        return ["total" => count($rows), "data" => $rows];
     }
 
     private function findValue($output, $pattern)
