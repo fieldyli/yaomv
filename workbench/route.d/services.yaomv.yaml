@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/services/yaomv"
+  title: _("Yandex Disk")
+  component: omv-services-yaomv-datatable-page
