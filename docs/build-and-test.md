@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha8_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha8_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha9_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha9_all.deb
 ```
 
 ## Contents
@@ -76,3 +76,11 @@ The alpha3 large synchronization gauge was removed because it displayed 0% even 
 - Automatically refreshes the Services page every 30 seconds and enables the native copy-to-clipboard button for diagnostics.
 - Values from the Yandex Disk process are Markdown-escaped, and rendered using OMV's built-in sanitized Markdown view; no custom HTML, JavaScript, external assets or write operations.
 - Test `omv-rpc -u admin Yaomv getOverview '{}'` before opening Services → Yandex Disk in a private browser window. Roll back using alpha7 if the Workbench page does not load.
+
+## alpha9: English language and clearer Services layout
+
+- Changes no synchronization settings and adds no service actions.
+- Replaces Services Markdown tables with headings, bullet lines and section separators, with status indicators and conditional diagnostics. The page remains an OMV native `textPage` and refreshes every 30 seconds.
+- Uses English for all plugin-generated sync states in Dashboard and Services: Syncing, Indexing, Up to date, Paused, Sync error, No connection. Cloud quota warnings read Warning/Critical.
+- Dashboard layout, progress bar and existing RPC contracts are unchanged. Existing error messages and filenames come verbatim from `yandex-disk status` and are escaped before display.
+- As always, syntax-check with `php -l engined/rpc/yaomv.inc`, build, simulate apt install, and only then upgrade.
