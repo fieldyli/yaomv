@@ -51,9 +51,12 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             ["Available quota", $this->findValue($output, '/^\s*Available:\s*(.+)$/m')]
         ];
 
-        return array_map(function ($field) {
+        $rows = array_map(function ($field) {
             return ["name" => $field[0], "value" => $field[1]];
         }, $fields);
+
+        // Workbench datatable pages expect the standard OMV list envelope.
+        return ["total" => count($rows), "data" => $rows];
     }
 
     private function findValue($output, $pattern)
