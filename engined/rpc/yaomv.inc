@@ -53,6 +53,15 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
             ["Available quota", $this->findValue($output, '/^\s*Available:\s*(.+)$/m')]
         ];
 
+        $error = $this->findValue($output, '/^Error:\s*(.+)$/m');
+        $path = $this->findValue($output, '/^Path:\s*\x27([^\x27]*)\x27\s*$/m');
+        if ($error !== "N/A") {
+            $fields[] = ["Error", $error];
+            if ($path !== "N/A") {
+                $fields[] = ["Error path", $path];
+            }
+        }
+
         $rows = array_map(function ($field) {
             return ["name" => $field[0], "value" => $field[1]];
         }, $fields);
@@ -88,7 +97,8 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
     }
 
     /**
-     * Compact dashboard data: two short cells instead of the oversized gauge.
+     * Compact dashboard: a short state and quota summary. Never displays
+     * filenames, directory paths or the misleading 0% of a new operation.
      */
     public function getDashboardStatus($params, $context)
     {
@@ -108,23 +118,40 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
         $progress = $this->findValue(
             $status, '/^Sync progress:\s*(.+)$/m'
         );
-        $percent = "";
-        if (preg_match('/\(\s*(\d{1,3})\s*%\s*\)/', $progress, $m)) {
-            $percent = " · " . min(100, (int) $m[1]) . "%";
-        }
-        $used = $this->findValue(
-            $status, '/^\s*Used:\s*(.+)$/m'
-        );
-        $total = $this->findValue(
-            $status, '/^\s*Total:\s*(.+)$/m'
-        );
 
-        $rows = [
-            ["name" => "Sync", "value" => ($service === "active"
-                ? $state . $percent : ($service ?: "unknown"))],
-            ["name" => "Cloud", "value" => $used . " / " . $total]
+        $labels = [
+            "busy" => "Синхронизация",
+            "index" => "Индексирование",
+            "idle" => "Синхронизировано",
+            "paused" => "Приостановлено",
+            "error" => "Ошибка синхронизации",
+            "no internet access" => "Нет подключения"
         ];
 
+        if ($service !== "active") {
+            $summary = "Служба: " . ($service ?: "unknown");
+        } else {
+            $summary = $labels[$state] ?? ($state === "N/A" ? "Статус недоступен" : $state);
+            // The client's percentage tracks its current operation, not total sync.
+            // Suppress 0%, which caused confusion during operation transitions.
+            if (in_array($state, ["busy", "index"], true) &&
+                preg_match('/\(\s*(\d{1,3})\s*%\s*\)/', $progress, $m)) {
+                $percentage = min(100, (int) $m[1]);
+                if ($percentage > 0) {
+                    $summary .= " · " . $percentage . "%";
+                }
+            }
+        }
+
+        $used = $this->findValue($status, '/^\s*Used:\s*(.+)$/m');
+        $total = $this->findValue($status, '/^\s*Total:\s*(.+)$/m');
+        $quota = ($used === "N/A" || $total === "N/A")
+            ? "—" : $used . " / " . $total;
+
+        $rows = [
+            ["name" => "Sync", "value" => $summary],
+            ["name" => "Cloud", "value" => $quota]
+        ];
         return ["total" => count($rows), "data" => $rows];
     }
 
