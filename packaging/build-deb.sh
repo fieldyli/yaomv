@@ -4,7 +4,7 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-VERSION="0.1.0~alpha8"
+VERSION="0.1.0~alpha9"
 PKG="openmediavault-yaomv"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM
