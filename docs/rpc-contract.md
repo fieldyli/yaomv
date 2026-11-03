@@ -50,3 +50,7 @@ The gauge is in `workbench/dashboard.d/yaomv_progress.yaml`; the existing dashbo
 `workbench/component.d/omv-services-yaomv-datatable-page.yaml` consumes `Yaomv.getStatus`.
 
 The dashboard widget is intentionally deferred until the RPC endpoint and its permissions work in a disposable OMV 8 test environment.
+
+## Compact Dashboard endpoint (alpha4)
+
+`Yaomv.getDashboardStatus` returns a `{total, data}` list with two rows: `Sync` (current state and percentage when reported) and `Cloud` (used / total quota). The existing `Yaomv.getStatus` powers the full Services page; `getProgress` remains available for compatibility but the incorrect oversized gauge was removed from the package.
