@@ -1,4 +1,5 @@
-# Compact dashboard with native OMV horizontal quota usage bar.
+# Compact Dashboard widget using OMV's native progressBar cell.
+# The bar shows cloud quota usage, not per-file synchronization progress.
 version: "1.0"
 type: dashboard-widget
 data:
@@ -11,20 +12,18 @@ data:
   title: _("Yandex Disk")
   description: _("Synchronization state and cloud quota usage.")
   datatable:
-    hasHeader: true
+    hasHeader: false
     hasFooter: false
     columns:
-      - name: _("Synchronization")
+      - name: _("Status")
         prop: sync
-        flexGrow: 2
+        flexGrow: 3
         sortable: false
-      - name: _("Cloud")
-        prop: cloud
-        flexGrow: 2
-        sortable: false
-      - name: _("Used")
+        cellTemplateName: template
+        cellTemplateConfig: '{{ sync }}<br>{{ cloud }}'
+      - name: _("Cloud usage")
         prop: usagePercent
-        flexGrow: 2
+        flexGrow: 5
         sortable: false
         cellTemplateName: progressBar
         cellTemplateConfig:
