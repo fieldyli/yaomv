@@ -7,17 +7,17 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha1_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha1_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha2_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha2_all.deb
 ```
 
 ## Contents
 
 The package stages `yaomv.inc` in the OMV engined RPC directory and the four
-YAML manifests in the appropriate Workbench directories. The post-install hook
-requests the `update-workbench` dpkg trigger, following OMV's plugin conventions.
-It deliberately does **not** restart `openmediavault-engined` or operate on
-`yandex-disk.service`.
+YAML manifests in the appropriate Workbench directories. The post-install and removal hooks request the verified `update-workbench` and
+`restart-engined` dpkg triggers. During installation or removal, OMV's own
+trigger handler rebuilds Workbench and **restarts openmediavault-engined**.
+The package does not start, stop or modify `yandex-disk.service`.
 
 The Yandex Disk credentials are never packaged.
 
