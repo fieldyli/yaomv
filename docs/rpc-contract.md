@@ -54,3 +54,7 @@ The dashboard widget is intentionally deferred until the RPC endpoint and its pe
 ## Compact Dashboard endpoint (alpha4)
 
 `Yaomv.getDashboardStatus` returns a `{total, data}` list with two rows: `Sync` (current state and percentage when reported) and `Cloud` (used / total quota). The existing `Yaomv.getStatus` powers the full Services page; `getProgress` remains available for compatibility but the incorrect oversized gauge was removed from the package.
+
+## alpha5 error fields
+
+`Yaomv.getStatus` keeps its existing `{total, data}` format and conditionally adds rows `Error` and `Error path` when the client's status output contains an error. The `Error path` may contain private filenames and is visible only in the admin-only Services page. The compact Dashboard never shows the error path; its `Sync` row has a short localized state. An absent progress percentage is not represented as completed work.
