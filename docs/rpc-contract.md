@@ -8,17 +8,20 @@ They require an authenticated OMV RPC backend.
 - RPC service: `Yaomv`
 - Method: `getStatus`
 - Parameters: none
-- Return: an array of rows (`name`, `value`), suitable for a read-only `datatablePage`
+- Return: the OMV datatable envelope `{total, data}`. The `data` array contains rows (`name`, `value`).
 
 Example response (synthetic; no user data):
 
 ```json
-[
-  {"name": "Service", "value": "active"},
-  {"name": "Sync state", "value": "busy"},
-  {"name": "Progress", "value": "15 KB / 3 GB (0%)"},
-  {"name": "Quota", "value": "271 GB / 1 TB"}
-]
+{
+  "total": 4,
+  "data": [
+    {"name": "Service", "value": "active"},
+    {"name": "Sync state", "value": "busy"},
+    {"name": "Progress", "value": "15 KB / 3 GB (0%)"},
+    {"name": "Used quota", "value": "271 GB"}
+  ]
+}
 ```
 
 ## Security requirements
