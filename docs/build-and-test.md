@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha2_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha2_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha3_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha3_all.deb
 ```
 
 ## Contents
@@ -20,6 +20,14 @@ trigger handler rebuilds Workbench and **restarts openmediavault-engined**.
 The package does not start, stop or modify `yandex-disk.service`.
 
 The Yandex Disk credentials are never packaged.
+
+## alpha3 updates
+
+- Adds a second, numerical read-only `Yaomv.getProgress` RPC method.
+- Adds the optional dashboard progress gauge `yaomv_progress.yaml`.
+- Keeps the existing status page and status grid unchanged.
+
+Before upgrading a production installation, confirm the local status page works and retain the previous `.deb` as a rollback package. Installing a new version triggers OMV Workbench rebuild and RPC engine restart. The gauge has not yet been tested in a browser.
 
 ## Remaining verification
 
