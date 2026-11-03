@@ -36,7 +36,7 @@ python3 -m unittest discover -s tests -v
 
 ## Latest experimental package
 
-Build from source with `sh packaging/build-deb.sh`. Alpha8 keeps the verified alpha7 Dashboard unchanged and updates Services → Yandex Disk to a native, read-only Markdown overview with separate sync, cloud quota and optional error diagnostic sections. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha7 build before upgrading.
+Build from source with `sh packaging/build-deb.sh`. Alpha9 retains the verified Dashboard layout, translates its dynamic status labels into English, and replaces cramped Markdown tables on the Services page with clear English status, cloud quota and conditional diagnostics sections. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Inspect the package and preserve the previous working alpha7 build before upgrading.
 
 ## Development plan
 
@@ -63,3 +63,7 @@ GPL-3.0-only. See [LICENSE](LICENSE).
 Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha8 Dashboard сохраняет проверенный вид alpha7. Страница Services → Yandex Disk показывает структурированный обзор службы, синхронизации и квоты, а при ошибках — подробную диагностику. Нативный индикатор OMV становится красным при заполнении от 90%; текстовое предупреждение появляется с 70%. Подробные ошибки доступны на странице службы.
 
 Никаких личных путей, конфигурации, токенов или данных синхронизации в репозиторий не добавляем.
+
+## alpha9 interface language
+
+All plugin UI labels and dynamic status messages now use English. Dashboard layout is unchanged; Services uses native Markdown headings and bullet lines instead of densely spaced tables. Runtime client errors and affected filenames are displayed only on the admin-only Services page.
