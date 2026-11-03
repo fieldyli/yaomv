@@ -1,23 +1,38 @@
-# Compact read-only dashboard widget for Yandex Disk.
+# Compact dashboard with native OMV horizontal quota usage bar.
 version: "1.0"
 type: dashboard-widget
 data:
   id: "b93af39e-a1f0-4765-a82c-0ca589d7de72"
-  type: grid
+  type: datatable
   reloadPeriod: 30000
   permissions:
     role:
       - admin
   title: _("Yandex Disk")
-  description: _("Synchronization status and cloud usage.")
-  grid:
-    item:
-      content: '{{ name }}: {{ value }}'
-      tooltip: '{{ name }}: {{ value }}'
-      class: "omv-text-center"
-      contentClass: "omv-text-nowrap"
+  description: _("Synchronization state and cloud quota usage.")
+  datatable:
+    hasHeader: true
+    hasFooter: false
+    columns:
+      - name: _("Synchronization")
+        prop: sync
+        flexGrow: 2
+        sortable: false
+      - name: _("Cloud")
+        prop: cloud
+        flexGrow: 2
+        sortable: false
+      - name: _("Used")
+        prop: usagePercent
+        flexGrow: 2
+        sortable: false
+        cellTemplateName: progressBar
+        cellTemplateConfig:
+          text: '{{ usageText }}'
+          warningThreshold: 90
+          decimalPlaces: 1
     store:
       proxy:
         service: Yaomv
         get:
-          method: getDashboardStatus
+          method: getDashboardUsage
