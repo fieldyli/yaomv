@@ -24,6 +24,16 @@ Example response (synthetic; no user data):
 }
 ```
 
+## Progress gauge endpoint
+
+- RPC service: `Yaomv`
+- Method: `getProgress`
+- Parameters: none
+- Returns: `{"progressPercent": 82}` for reported progress, or `{"progressPercent": null}` if the client reports no percentage.
+- Administrator role required. This is read-only and does not alter synchronization.
+
+The gauge is in `workbench/dashboard.d/yaomv_progress.yaml`; the existing dashboard status grid and the working status table are unchanged.
+
 ## Security requirements
 
 - Only authenticated, authorized OMV administrators may invoke the method.
