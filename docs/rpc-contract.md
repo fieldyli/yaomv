@@ -1,72 +1,56 @@
-# yaomv RPC contract (draft, pre-alpha)
+# yaomv RPC interface — 0.1.0~alpha9
 
-The OMV Workbench UI definitions in `workbench/` are **not installable yet**.
-They require an authenticated OMV RPC backend.
+The installed OMV backend is **PHP**, in `engined/rpc/yaomv.inc`; the Python status probe in `src/yaomv/status.py` is a separate early diagnostic/test helper. All RPC methods below require an authorized **OMV administrator** and are read-only.
 
-## Endpoint
+The backend uses fixed, allowlisted commands (not user-controlled shell commands), timeout limits and no credential/config file reads. Client-returned error messages may contain private filenames, which are exposed only to authenticated administrators through the Services page.
 
-- RPC service: `Yaomv`
-- Method: `getStatus`
-- Parameters: none
-- Return: the OMV datatable envelope `{total, data}`. The `data` array contains rows (`name`, `value`).
+## Available methods
 
-Example response (synthetic; no user data):
+| Method | Response | UI consumer |
+| --- | --- | --- |
+| `Yaomv.getOverview` | Markdown **string** with Service status, Cloud storage, optional Diagnostics | **Services → Yandex Disk** native `textPage` |
+| `Yaomv.getDashboardUsage` | `{total: 1, data: [{sync, cloud, usagePercent, usageText}]}` | **Dashboard** |
+| `Yaomv.getStatus` | `{total, data: [{name, value}, ...]}` | Legacy/diagnostic status table |
+| `Yaomv.getDashboardStatus` | `{total: 2, data: [{name, value}, ...]}` | Legacy compact grid compatibility |
+| `Yaomv.getProgress` | `{progressPercent: number | null}` | Legacy gauge compatibility (not used in current UI) |
+
+All methods accept no parameters in the alpha9 UI.
+
+Example (synthetic):
 
 ```json
 {
-  "total": 4,
+  "total": 1,
   "data": [
-    {"name": "Service", "value": "active"},
-    {"name": "Sync state", "value": "busy"},
-    {"name": "Progress", "value": "15 KB / 3 GB (0%)"},
-    {"name": "Used quota", "value": "271 GB"}
+    {
+      "sync": "Up to date",
+      "cloud": "250 GB / 1 TB",
+      "usagePercent": 25.0,
+      "usageText": "25%"
+    }
   ]
 }
 ```
 
-## Progress gauge endpoint
-
-- RPC service: `Yaomv`
-- Method: `getProgress`
-- Parameters: none
-- Returns: `{"progressPercent": 82}` for reported progress, or `{"progressPercent": null}` if the client reports no percentage.
-- Administrator role required. This is read-only and does not alter synchronization.
-
-The gauge is in `workbench/dashboard.d/yaomv_progress.yaml`; the existing dashboard status grid and the working status table are unchanged.
-
-## Security requirements
-
-- Only authenticated, authorized OMV administrators may invoke the method.
-- Back end executes allowlisted read-only binaries without a shell and with timeouts.
-- Do not expose credentials, environment variables, complete process command lines, private tokens or config contents.
-- Redact/avoid synchronization directory paths in shared screenshots/telemetry and public test fixtures.
-- Any unavailability should surface a clear error without retry loops that could burden the NAS.
-- No sync/start/stop/resume commands in v0.1.0.
+- `getDashboardUsage.usagePercent` is the **percentage of cloud storage capacity used** (0–100), **not** the percentage of files synchronized.
+- If the client does not provide parseable quota values, `usagePercent` is currently returned as `0` with `usageText: "N/A"`. That is an unknown/unavailable metric, not a confirmed empty cloud.
+- The native Workbench `progressBar` remains green below 90% and red from 90%. The text says `Warning` from 70–89%, `Critical` from 90%.
+- `getOverview` returns English Markdown headings and bullet lines, with optional diagnostics when the client reports `Error` and an affected path. It may render status symbols. The Workbench text page sanitizes rendered Markdown.
+- Source-side sync values include `busy`, `index`, `idle`, `paused`, `error`, `no internet access`; the current interface maps them to `Syncing`, `Indexing`, `Up to date`, `Paused`, `Sync error`, `No connection`.
+- A service can be `active` while its synchronization state is `No connection` or `Sync error`. These are different signals, not an inconsistency.
 
 ## Workbench integration
 
-`workbench/navigation.d/services.yaomv.yaml` defines the menu.
-`workbench/route.d/services.yaomv.yaml` connects URL and component.
-`workbench/component.d/omv-services-yaomv-datatable-page.yaml` consumes `Yaomv.getStatus`.
+- `workbench/navigation.d/services.yaomv.yaml`: menu entry.
+- `workbench/route.d/services.yaomv.yaml`: route `/services/yaomv`.
+- `workbench/component.d/omv-services-yaomv-datatable-page.yaml`: native `textPage` with 30-second refresh and copy button. The filename reflects an earlier datatable iteration and is kept for compatibility.
+- `workbench/dashboard.d/yaomv_status.yaml`: native `datatable` widget with 30-second reload and a quota progress bar.
 
-The dashboard widget is intentionally deferred until the RPC endpoint and its permissions work in a disposable OMV 8 test environment.
+## Security and operations
 
-## Compact Dashboard endpoint (alpha4)
+- No Yandex Disk credentials/tokens, account authorization, file operations, sync triggers or service lifecycle operations are part of the current RPC API.
+- The Services diagnostics view can include affected filenames and may be copied by an administrator; review before publicly sharing.
+- Client status and quota reporting depend on the installed Yandex Disk client and can become temporarily stale or unavailable.
+- The install/upgrade package restarts the **OMV engined RPC daemon** via standard dpkg triggers; the plugin does not restart `yandex-disk.service`.
 
-`Yaomv.getDashboardStatus` returns a `{total, data}` list with two rows: `Sync` (current state and percentage when reported) and `Cloud` (used / total quota). The existing `Yaomv.getStatus` powers the full Services page; `getProgress` remains available for compatibility but the incorrect oversized gauge was removed from the package.
-
-## alpha5 error fields
-
-`Yaomv.getStatus` keeps its existing `{total, data}` format and conditionally adds rows `Error` and `Error path` when the client's status output contains an error. The `Error path` may contain private filenames and is visible only in the admin-only Services page. The compact Dashboard never shows the error path; its `Sync` row has a short localized state. An absent progress percentage is not represented as completed work.
-
-## alpha6 cloud quota widget
-
-`Yaomv.getDashboardUsage` returns a single-row OMV list envelope containing `sync` (short state), `cloud` (human-readable used/total), `usagePercent` (numeric 0–100), `usageText` (overlay percentage / warning). If quota values cannot be parsed, `usagePercent` is 0 and `usageText` is `N/A`; do not interpret that as 0% usage. No filenames or authentication details are returned to the Dashboard. The widget uses the native OMV `progressBar` cell, which has a green/red warning threshold only.
-
-## alpha8 read-only Services overview
-
-`Yaomv.getOverview` returns a Markdown-formatted string for a native OMV `textPage`; the dashboard and prior RPC methods remain unchanged. The output contains separate sections for service/synchronization state and cloud quota, a current-operation line only if reported by the client, and an error diagnostic section only when an error is reported. Error paths may contain private filenames but are visible only to an authenticated OMV administrator. The returned text is not stored or committed.
-
-## alpha9 English UI text
-
-The existing `Yaomv.getOverview`, `Yaomv.getDashboardStatus` and `Yaomv.getDashboardUsage` methods keep their return formats, but human-readable UI statuses and warning strings are in English. The overview uses Markdown headings, bullets, and dividers (not tables), and may show warning/status symbols. No client files or settings are modified.
+For installation, compatibility, limitations, and independent-project status, see [INSTALL.md](INSTALL.md), [TESTING.md](TESTING.md), and [README](../README.md).
