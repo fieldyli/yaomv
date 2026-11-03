@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha6_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha6_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha7_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha7_all.deb
 ```
 
 ## Contents
@@ -59,3 +59,11 @@ The alpha3 large synchronization gauge was removed because it displayed 0% even 
 - Uses OMV's native `progressBar` cell template, which is **green below 90% and red from 90%**. At 70–89% the overlay text says `Внимание`, and from 90% `Критично`. OMV has no built-in amber third color for this template; no custom CSS or JavaScript is injected.
 - Existing `getStatus`, `getProgress` and `getDashboardStatus` RPC methods remain available; the Services status page is unchanged.
 - Verify the Dashboard in a browser after installing: the widget should show one row with three columns and a colored bar. On narrow screens, the dashboard's datatable layout may be less compact than the old grid. Roll back to alpha5 if undesirable.
+
+## alpha7 compact Dashboard layout
+
+- Changes only the Dashboard YAML and package version; no PHP RPC or synchronized-file changes.
+- Hides the table header (`hasHeader: false`).
+- Displays status and quota in one two-line `template` cell (`{{ sync }}<br>{{ cloud }}`) with 3 flex units; gives the native `progressBar` 5 flex units.
+- Dashboard still uses `Yaomv.getDashboardUsage` and its warning threshold of 90%. Text warnings still start at 70%.
+- A full-width stacked layout is not supported by the generic Dashboard datatable; this is the native, low-risk compromise. Validate the visual result in a private browser window and roll back to alpha6 if needed.
