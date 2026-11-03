@@ -1,0 +1,24 @@
+# Pre-alpha UI scaffold: requires Yaomv.getStatus RPC implementation.
+# Do not install this Workbench component in production yet.
+version: "1.0"
+type: component
+data:
+  name: omv-services-yaomv-datatable-page
+  type: datatablePage
+  config:
+    autoReload: 10000
+    hasSearchField: false
+    store:
+      proxy:
+        service: Yaomv
+        get:
+          method: getStatus
+    columns:
+      - name: _("Parameter")
+        prop: name
+        flexGrow: 1
+        sortable: false
+      - name: _("Value")
+        prop: value
+        flexGrow: 2
+        sortable: false
