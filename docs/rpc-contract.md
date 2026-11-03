@@ -58,3 +58,7 @@ The dashboard widget is intentionally deferred until the RPC endpoint and its pe
 ## alpha5 error fields
 
 `Yaomv.getStatus` keeps its existing `{total, data}` format and conditionally adds rows `Error` and `Error path` when the client's status output contains an error. The `Error path` may contain private filenames and is visible only in the admin-only Services page. The compact Dashboard never shows the error path; its `Sync` row has a short localized state. An absent progress percentage is not represented as completed work.
+
+## alpha6 cloud quota widget
+
+`Yaomv.getDashboardUsage` returns a single-row OMV list envelope containing `sync` (short state), `cloud` (human-readable used/total), `usagePercent` (numeric 0–100), `usageText` (overlay percentage / warning). If quota values cannot be parsed, `usagePercent` is 0 and `usageText` is `N/A`; do not interpret that as 0% usage. No filenames or authentication details are returned to the Dashboard. The widget uses the native OMV `progressBar` cell, which has a green/red warning threshold only.
