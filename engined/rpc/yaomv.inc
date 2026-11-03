@@ -17,6 +17,7 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
     public function initialize()
     {
         $this->registerMethod("getStatus");
+        $this->registerMethod("getProgress");
     }
 
     /**
@@ -57,6 +58,32 @@ class Yaomv extends \OMV\Rpc\ServiceAbstract
 
         // Workbench datatable pages expect the standard OMV list envelope.
         return ["total" => count($rows), "data" => $rows];
+    }
+
+    /**
+     * Dashboard gauge: return numeric progress, or null if the Yandex
+     * Disk client did not report a percentage. Read-only and admin-only.
+     */
+    public function getProgress($params, $context)
+    {
+        $this->validateMethodContext($context, [
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ]);
+
+        $output = $this->readCommand(
+            ["/usr/bin/yandex-disk", "status"],
+            12
+        );
+        $progress = $this->findValue(
+            $output,
+            '/^Sync progress:\\s*(.+)$/m'
+        );
+        $percent = null;
+        if (preg_match('/\\(\\s*(\\d{1,3})\\s*%\\s*\\)/', $progress, $matches)) {
+            $percent = min(100, max(0, (int) $matches[1]));
+        }
+
+        return ["progressPercent" => $percent];
     }
 
     private function findValue($output, $pattern)
