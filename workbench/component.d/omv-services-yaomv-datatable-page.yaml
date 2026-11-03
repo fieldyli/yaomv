@@ -1,24 +1,15 @@
-# Pre-alpha UI scaffold: requires Yaomv.getStatus RPC implementation.
-# Do not install this Workbench component in production yet.
+# Native OMV read-only Markdown overview, retaining the existing route and component ID.
 version: "1.0"
 type: component
 data:
   name: omv-services-yaomv-datatable-page
-  type: datatablePage
+  type: textPage
   config:
-    autoReload: 10000
-    hasSearchField: false
-    store:
-      proxy:
-        service: Yaomv
-        get:
-          method: getStatus
-    columns:
-      - name: _("Parameter")
-        prop: name
-        flexGrow: 1
-        sortable: false
-      - name: _("Value")
-        prop: value
-        flexGrow: 2
-        sortable: false
+    title: _("Yandex Disk")
+    autoReload: 30000
+    contentFormat: markdown
+    hasCopyToClipboardButton: true
+    request:
+      service: Yaomv
+      get:
+        method: getOverview
