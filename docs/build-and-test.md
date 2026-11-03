@@ -7,8 +7,8 @@ does not install it or restart the OMV engine.
 
 ```sh
 sh packaging/build-deb.sh
-dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha5_all.deb
-dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha5_all.deb
+dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha6_all.deb
+dpkg-deb --contents dist/openmediavault-yaomv_0.1.0~alpha6_all.deb
 ```
 
 ## Contents
@@ -50,3 +50,12 @@ The alpha3 large synchronization gauge was removed because it displayed 0% even 
 - Services page: conditionally append `Error` and `Error path` from the client's `yandex-disk status` output, if the error is reported.
 - No changes to Yandex Disk configuration, service lifecycle, authentication, or synchronized files.
 - Upgrade triggers restart of the OMV RPC engine and Workbench rebuild. Verify with `Yaomv.getStatus` and `Yaomv.getDashboardStatus` before checking the browser in a private window.
+
+## alpha6 native cloud usage progress bar
+
+- Replaces the 2-cell grid Dashboard widget with a single-row OMV datatable (same widget ID) containing sync state, cloud size and a horizontal quota usage progress bar.
+- Implements `Yaomv.getDashboardUsage` with fields `sync`, `cloud`, `usagePercent`, `usageText`.
+- Progress indicates **percentage of cloud storage capacity used**, not file synchronization progress. Decimal units from `yandex-disk status` are converted to bytes before calculating the percentage.
+- Uses OMV's native `progressBar` cell template, which is **green below 90% and red from 90%**. At 70–89% the overlay text says `Внимание`, and from 90% `Критично`. OMV has no built-in amber third color for this template; no custom CSS or JavaScript is injected.
+- Existing `getStatus`, `getProgress` and `getDashboardStatus` RPC methods remain available; the Services status page is unchanged.
+- Verify the Dashboard in a browser after installing: the widget should show one row with three columns and a colored bar. On narrow screens, the dashboard's datatable layout may be less compact than the old grid. Roll back to alpha5 if undesirable.
