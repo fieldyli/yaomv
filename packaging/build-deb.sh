@@ -4,7 +4,7 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-VERSION="0.1.0~alpha1"
+VERSION="0.1.0~alpha2"
 PKG="openmediavault-yaomv"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM
@@ -46,12 +46,26 @@ set -e
 case "$1" in
   configure)
     dpkg-trigger update-workbench
-    # No automatic daemon restart: avoid disrupting a running OMV system.
+    dpkg-trigger restart-engined
+    # OMV's trigger handler performs the Workbench rebuild and RPC engine restart.
     ;;
 esac
 exit 0
 EOF
 chmod 0755 "$STAGE/DEBIAN/postinst"
+
+cat > "$STAGE/DEBIAN/postrm" <<'EOF'
+#!/bin/sh
+set -e
+case "$1" in
+  remove|purge)
+    dpkg-trigger update-workbench
+    dpkg-trigger restart-engined
+    ;;
+esac
+exit 0
+EOF
+chmod 0755 "$STAGE/DEBIAN/postrm"
 
 mkdir -p "$ROOT/dist"
 dpkg-deb --build --root-owner-group "$STAGE" \
