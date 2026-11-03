@@ -4,7 +4,7 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-**Status:** early development (pre-alpha). This repository does **not** yet contain an installable OpenMediaVault plugin.
+**Status:** experimental pre-alpha. A manually built Debian plugin was installed and its read-only status page + RPC verified on OMV 8.6.0-1; the new progress gauge is not yet browser-tested.
 
 ## Goal
 
@@ -32,7 +32,11 @@ python3 src/yaomv/status.py
 python3 -m unittest discover -s tests -v
 ```
 
-**Do not install this prototype onto a production OMV system as an OMV plugin.** Packaging, OMV RPC integration, error handling and GUI permissions must be reviewed before deployment.
+**Caution:** this is an experimental project, not a production-supported package. Back up OMV Workbench/RPC files and test in an isolated VM where possible. Installing or upgrading the Debian package triggers an OMV RPC engine restart and Workbench rebuild.
+
+## Latest experimental package
+
+Build from source with `sh packaging/build-deb.sh`. The current alpha3 adds `Yaomv.getProgress` and a Dashboard gauge. The working alpha2 status page remains unchanged. See [build instructions](docs/build-and-test.md). Do not install alpha3 before inspecting the build and checking your rollback path.
 
 ## Development plan
 
@@ -56,6 +60,6 @@ GPL-3.0-only. See [LICENSE](LICENSE).
 
 **yaomv** — разрабатываемый плагин для веб-интерфейса OpenMediaVault 8, предназначенный для мониторинга уже установленного консольного клиента Яндекс Диска.
 
-В первой версии планируется страница **Службы → Яндекс Диск**, статус синхронизации, квота и виджет панели управления. **Пока опубликована только безопасная заготовка с CLI-модулем чтения статуса; полноценного устанавливаемого плагина ещё нет.**
+Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha3 добавлен графический индикатор прогресса на Dashboard; его отображение ещё предстоит проверить.
 
 Никаких личных путей, конфигурации, токенов или данных синхронизации в репозиторий не добавляем.
