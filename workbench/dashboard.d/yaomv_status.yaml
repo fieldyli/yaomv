@@ -1,4 +1,4 @@
-# Pre-alpha: requires the untested Yaomv.getStatus RPC backend.
+# Compact read-only dashboard widget for Yandex Disk.
 version: "1.0"
 type: dashboard-widget
 data:
@@ -9,15 +9,15 @@ data:
     role:
       - admin
   title: _("Yandex Disk")
-  description: _("Displays Yandex Disk service and synchronization status.")
+  description: _("Synchronization status and cloud usage.")
   grid:
     item:
-      content: "{{ name }}: {{ value }}"
-      tooltip: "{{ name }}: {{ value }}"
+      content: '{{ name }}: {{ value }}'
+      tooltip: '{{ name }}: {{ value }}'
       class: "omv-text-center"
-      contentClass: "omv-text-truncate"
+      contentClass: "omv-text-nowrap"
     store:
       proxy:
         service: Yaomv
         get:
-          method: getStatus
+          method: getDashboardStatus
