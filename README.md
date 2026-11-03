@@ -36,7 +36,7 @@ python3 -m unittest discover -s tests -v
 
 ## Latest experimental package
 
-Build from source with `sh packaging/build-deb.sh`. The current alpha3 adds `Yaomv.getProgress` and a Dashboard gauge. The working alpha2 status page remains unchanged. See [build instructions](docs/build-and-test.md). Do not install alpha3 before inspecting the build and checking your rollback path.
+Build from source with `sh packaging/build-deb.sh`. The current alpha4 replaces the oversized, inaccurate gauge with a compact two-value Dashboard widget. The working Services status page remains unchanged. See [build instructions](docs/build-and-test.md). Do not install alpha3 before inspecting the build and checking your rollback path.
 
 ## Development plan
 
@@ -60,6 +60,6 @@ GPL-3.0-only. See [LICENSE](LICENSE).
 
 **yaomv** — разрабатываемый плагин для веб-интерфейса OpenMediaVault 8, предназначенный для мониторинга уже установленного консольного клиента Яндекс Диска.
 
-Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha3 добавлен графический индикатор прогресса на Dashboard; его отображение ещё предстоит проверить.
+Экспериментальная версия alpha2 уже прошла первый тест на OMV 8.6.0-1: страница **Службы → Яндекс Диск** и RPC работают. В alpha4 вместо большого некорректного индикатора добавлен компактный виджет со статусом и квотой.
 
 Никаких личных путей, конфигурации, токенов или данных синхронизации в репозиторий не добавляем.
