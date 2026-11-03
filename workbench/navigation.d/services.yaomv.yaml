@@ -1,0 +1,7 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.yaomv"
+  text: _("Yandex Disk")
+  icon: "mdi:cloud-sync-outline"
+  url: "/services/yaomv"
