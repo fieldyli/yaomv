@@ -53,3 +53,14 @@ Please report reproducible issues **without tokens, credentials, or private file
 The repository includes `tests/test_rpc.php`, a self-contained mock of OMV's PHP service and process interfaces. It tests status/quotas, client failures, authorization and UI response shapes without connecting to a NAS or Yandex account.
 
 Run with `php -l engined/rpc/yaomv.inc && php tests/test_rpc.php`. GitHub Actions has been configured to invoke this suite and build the Debian package on pushes and pull requests. **Passing CI has not yet been independently confirmed here**; the suite does not replace a clean OMV integration test.
+
+## Standalone regression results — 2026-11-04
+
+Manually executed on the existing OMV 8 NAS after the PHP test harness was added:
+
+- `php -l engined/rpc/yaomv.inc` — no syntax errors.
+- `php -l tests/test_rpc.php` — no syntax errors.
+- `php tests/test_rpc.php` — **26 checks, 0 failures**.
+- `python3 -m unittest discover -s tests -p 'test_*.py' -v` — **3 tests, OK**.
+
+This confirms the standalone mock-based regression checks ran successfully in this environment; it does **not** validate a clean installation on a disposable OMV 8 VM, all external API failures, or GitHub Actions execution.
