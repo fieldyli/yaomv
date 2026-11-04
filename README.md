@@ -107,6 +107,7 @@ See [ROADMAP.md](docs/ROADMAP.md) for milestones: reliable diagnostics, tests/CI
 ```sh
 python3 -m unittest discover -s tests -v
 php -l engined/rpc/yaomv.inc
+php tests/test_rpc.php
 sh packaging/build-deb.sh
 ```
 
