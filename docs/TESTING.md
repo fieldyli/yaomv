@@ -34,8 +34,8 @@ These are **manual observations on one system**, not an automated compatibility 
 
 ## Known gaps
 
-- No clean-install validation on an empty disposable OMV 8 VM.
-- No end-to-end remove/purge and downgrade regression testing.
+- Clean install, remove, and reinstall have been manually verified on a separate OMV 8 VM (details below); **purge and downgrade remain untested**.
+- No end-to-end purge and downgrade regression testing.
 - Error diagnostics are implemented, but not all error-state presentations have been browser-tested.
 - No tests confirming behavior across Debian releases other than 13, alternative kernels, different service names, architectures, client versions, or restrictive environments.
 - No systematic network outage/failure-injection testing.
@@ -64,3 +64,17 @@ Manually executed on the existing OMV 8 NAS after the PHP test harness was added
 - `python3 -m unittest discover -s tests -p 'test_*.py' -v` — **3 tests, OK**.
 
 This confirms the standalone mock-based regression checks ran successfully in this environment; it does **not** validate a clean installation on a disposable OMV 8 VM, all external API failures, or GitHub Actions execution.
+
+## Separate Hyper-V VM clean-install and reinstall tests — 2026-11-04
+
+A separate Windows 11 Pro / Hyper-V Generation 2 VM running **Debian 13.7, OpenMediaVault 8.6.0-1 (Synchrony), amd64** was used for clean-install testing. The VM has an isolated test environment and a dedicated LAN connection. Yandex Disk Linux client **0.1.6.1081** was installed **without account authorization or `yandex-disk.service`**.
+
+Validated on this VM:
+
+1. Built package `openmediavault-yaomv_0.1.0~alpha9_all.deb` from source; `php -l` passed; `apt -s install` proposed exactly one package.
+2. First installation completed; OMV's package triggers restarted engined and rebuilt Workbench. Package state became installed; `getOverview` and `getDashboardUsage` RPCs worked; engined and nginx remained active.
+3. Native Services page and Dashboard widget were **visually verified** in the OMV browser UI. The Services page showed the expected unconfigured-client diagnostic `Error: option 'dir' is missing`. A transient `#/404` was seen at first and disappeared after reopening the page in a new browser session; root cause not established.
+4. `apt -s remove` proposed removal of **only** `openmediavault-yaomv`. After actual `apt remove`, package state was `rc` (removed, config-files metadata retained), package-owned RPC and Workbench YAML files were gone, `dpkg --audit` was clean, and engined/nginx remained active. The separate `yandex-disk` package remained installed.
+5. Reinstalled the same alpha9 `.deb`; package state returned to `ii`, both UI RPC methods returned expected data, engined/nginx stayed active, and the **Services and Dashboard pages reopened successfully in a browser**.
+
+**Not yet tested:** `apt purge`, downgrade between alpha versions, clean install with a fully configured/authorized Yandex Disk on this VM, or sustained network fault conditions. Production NAS remains untouched by these VM tests.
