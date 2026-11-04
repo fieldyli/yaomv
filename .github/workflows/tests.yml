@@ -10,5 +10,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run unit tests
-        run: python3 -m unittest discover -s tests -v
+      - name: Run Python parser tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Check PHP syntax
+        run: |
+          php -v
+          php -l engined/rpc/yaomv.inc
+          php -l tests/test_rpc.php
+      - name: Run standalone PHP RPC regression tests
+        run: php tests/test_rpc.php
+      - name: Check package assembly
+        run: |
+          sh packaging/build-deb.sh
+          dpkg-deb --info dist/openmediavault-yaomv_0.1.0~alpha9_all.deb
