@@ -47,3 +47,9 @@ Please report reproducible issues **without tokens, credentials, or private file
 ## Release status
 
 `alpha9` is the **latest manually verified baseline**, not a stable, officially supported or endorsed release. Changes on `main` after this baseline may not have undergone the same validations.
+
+## Standalone PHP regression suite (added after alpha9 verification)
+
+The repository includes `tests/test_rpc.php`, a self-contained mock of OMV's PHP service and process interfaces. It tests status/quotas, client failures, authorization and UI response shapes without connecting to a NAS or Yandex account.
+
+Run with `php -l engined/rpc/yaomv.inc && php tests/test_rpc.php`. GitHub Actions has been configured to invoke this suite and build the Debian package on pushes and pull requests. **Passing CI has not yet been independently confirmed here**; the suite does not replace a clean OMV integration test.
