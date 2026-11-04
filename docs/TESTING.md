@@ -34,8 +34,8 @@ These are **manual observations on one system**, not an automated compatibility 
 
 ## Known gaps
 
-- Clean install, remove, and reinstall have been manually verified on a separate OMV 8 VM (details below); **purge and downgrade remain untested**.
-- No end-to-end purge and downgrade regression testing.
+- Clean install, remove, and reinstall have been manually verified on a separate OMV 8 VM (details below); **downgrade remains untested**.
+- No end-to-end downgrade regression testing.
 - Error diagnostics are implemented, but not all error-state presentations have been browser-tested.
 - No tests confirming behavior across Debian releases other than 13, alternative kernels, different service names, architectures, client versions, or restrictive environments.
 - No systematic network outage/failure-injection testing.
@@ -77,4 +77,17 @@ Validated on this VM:
 4. `apt -s remove` proposed removal of **only** `openmediavault-yaomv`. After actual `apt remove`, package state was `rc` (removed, config-files metadata retained), package-owned RPC and Workbench YAML files were gone, `dpkg --audit` was clean, and engined/nginx remained active. The separate `yandex-disk` package remained installed.
 5. Reinstalled the same alpha9 `.deb`; package state returned to `ii`, both UI RPC methods returned expected data, engined/nginx stayed active, and the **Services and Dashboard pages reopened successfully in a browser**.
 
-**Not yet tested:** `apt purge`, downgrade between alpha versions, clean install with a fully configured/authorized Yandex Disk on this VM, or sustained network fault conditions. Production NAS remains untouched by these VM tests.
+**Not yet tested:** downgrade between alpha versions, clean install with a fully configured/authorized Yandex Disk on this VM, or sustained network fault conditions. Production NAS remains untouched by these VM tests.
+
+## Full purge regression — 2026-11-04
+
+On the separate OMV 8.6.0-1 / Debian 13.7 Hyper-V test VM, `apt -s purge openmediavault-yaomv` proposed **only one package removal**, with no upgrades or installations. The user then completed the actual purge and verified:
+
+- `dpkg-query` reported **no package matching `openmediavault-yaomv`**, confirming removal of the remaining dpkg configuration entry (not merely `rc`).
+- `/usr/share/openmediavault/engined/rpc/yaomv.inc` was absent.
+- No `*yaomv*` files remained beneath `/usr/share/openmediavault/workbench`.
+- `dpkg --audit` returned no issues.
+- `openmediavault-engined` and `nginx` remained `active`.
+- The independent `yandex-disk` package remained installed, version `0.1.6.1081`.
+
+This verifies the **package purge** on one test VM; the plugin has **not yet been reinstalled after this purge** or tested for downgrades. No changes were made to the production NAS.
